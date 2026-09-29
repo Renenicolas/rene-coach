@@ -40,7 +40,7 @@ window.ROUTINES = {
     why: 'No foam roller needed (that happens at the gym now). Calms you down, drains face puffiness a bit, and gets you ready to sleep.',
     items: [
       { name: 'Face release (hands only)', dose: '3 min', sec: 180, how: 'Clean hands, a little oil or moisturizer. Follow the video: slow strokes from the middle of your face out to your ears, jaw toward ears, then down the SIDES of your neck. Never press the front of your neck.', media: Y('face_hands'), src: 'Mitchell / Kaya' },
-      { name: 'Legs up the wall', dose: '2 min', sec: 120, how: "Tripp's first move again: back on the floor, legs up the wall or on the bed. Slow breaths into your back. Take magnesium + glycine now.", media: C('m1_breathing'), src: 'Tripp' },
+      { name: 'Legs up the wall', dose: '2 min', sec: 120, how: "Tripp's first move again: back on the floor, legs up the wall or on the bed. Slow breaths into your back. Then take your night stack: chamomile tea, magnesium glycinate 1 scoop (2/3 on Hydrate days), glycine 3 g, Xyzal 1 tablet.", media: C('m1_breathing'), src: 'Tripp' },
       { name: '2-2-4 breathing', dose: '5 min (in bed)', sec: 300, breath: [2, 2, 4], how: 'In through your nose for 2, hold 2, out through your nose for 4. Belly soft. Follow the circle.', src: 'Breathing research' }
     ]
   },
@@ -78,7 +78,7 @@ window.ROUTINES = {
     title: 'Sunday sauna + cold plunge', src: 'Heat/cold research',
     why: 'Sunday is the right day for the plunge: cold water right after lifting can shrink muscle gains, and Sunday has no lift. About 35 minutes.',
     items: [
-      { name: 'Sauna', dose: '12-15 min', sec: 900, how: 'Drink water + Hydrate first. Sit or lie down. Get out if dizzy.' },
+      { name: 'Sauna', dose: '12-15 min', sec: 900, how: 'First drink Transparent Labs Hydrate, 1 scoop in 500 ml water. Sit or lie down. Get out if dizzy.' },
       { name: 'Cold plunge', dose: '1-3 min', sec: 120, how: '50-59°F. Slow breaths out, shoulders under. Start with 1 min.' },
       { name: 'Sauna again', dose: '10 min', sec: 600, how: 'Round 2.' },
       { name: 'Cold plunge (finish)', dose: '1-3 min', sec: 120, how: 'End on cold. Let your body warm up on its own after (no hot shower right away).' }
@@ -179,7 +179,7 @@ const F_LEGS = [...FOAM.slice(0, 3),
   { name: 'Calf stretch on a step', dose: '30 sec each side', sec: 60, sides: true, how: 'Knee straight, then knee bent.', media: Y('calf_stretch') },
   { name: 'Deep squat hold', dose: '1 min', sec: 60, how: 'Heels on a plate, hold a rack. Chest up.', media: Y('deep_squat_hold') }
 ];
-const SAUNA = { name: 'Sauna', dose: '15 min', sec: 900, how: 'Drink 500 ml water + Hydrate. Sit or lie down. You can do gentle stretches in there. Skip it on a drinking night or the morning after.' };
+const SAUNA = { name: 'Sauna', dose: '15 min', sec: 900, how: 'Finish your Hydrate bottle (or 500 ml water). Sit or lie down. You can do gentle stretches in there. Skip it on a drinking night or the morning after.' };
 
 // ---------- WORKOUTS ----------
 // Every exercise: why = the reason it's in your plan. src = where it came from.
@@ -269,9 +269,9 @@ window.FOOD = {
     { team: 'Rich', color: '#8b5cf6', protein: 'Fatty: steak, salmon, lamb, whole eggs', add: 'Veggies + olive oil or butter, avocado', dessert: 'No dessert' }
   ],
   day: [
-    { meal: 'Meal 1 (pre-lift)', team: 'Sweet', what: '1 whole egg + 6 egg whites (or Greek yogurt), 80 g oats, cinnamon, berries, a little honey. Greens, omega-3, ashwagandha, beta-alanine.' },
-    { meal: 'Meal 2 (post-lift)', team: 'Sweet', what: 'Chicken, shrimp or cod + 1.5 cups white rice + pineapple or fruit. Creatine 5 g.' },
-    { meal: 'Dinner', team: 'Pick', what: 'RICH: steak or salmon + veggies + olive oil, no dessert. SWEET: chicken/cod + potato or rice + veggies, then the yogurt bowl.' },
+    { meal: 'Meal 1 (pre-lift)', team: 'Sweet', what: '1 whole egg + 6 egg whites (or Greek yogurt), 80 g oats, cinnamon, berries, a little honey. Take: greens 1 scoop, omega-3 1 softgel, ashwagandha 600 mg, beta-alanine 3 g.' },
+    { meal: 'Meal 2 (post-lift)', team: 'Sweet', what: 'Chicken, shrimp or cod + 1.5 cups white rice + pineapple or fruit. Take: creatine 5 g.' },
+    { meal: 'Dinner', team: 'Pick', what: 'RICH: steak or salmon + veggies + olive oil, no dessert. SWEET: chicken/cod + potato or rice + veggies, then the yogurt bowl. Take: beta-alanine 1.5 g + a cup of bone broth.' },
     { meal: '9 PM bowl (optional)', team: 'Sweet', what: 'Greek yogurt or cottage cheese + fruit + honey. Only after a Sweet dinner.' }
   ],
   dont: ['Donuts, pastries', 'Pizza', 'Burger + fries + shake', 'Ice cream after a steak'],
@@ -321,4 +321,17 @@ window.FILMGUIDE = {
     'At week 6 and 12 the app reminds you to watch week 1 vs now side by side.'
   ],
   skip: 'Missed a film day? Film on your next leg day. Missed a whole film week? Skip it and film next odd week. Never film more than this; it is just a quick check.'
+};
+
+// ---------- SUPPLEMENTS (your Superpower stack, exact) ----------
+window.SUPPS = {
+  am: ['Quince Daily Superfood Greens: 1 scoop', 'Sports Research omega-3: 1 softgel (690 EPA + 260 DHA)', 'KSM-66 ashwagandha: 600 mg', 'Beta-alanine: 3 g (tingles, that is normal)'],
+  coffee: ['Coffee: about 200 mg caffeine (1 large drip or 2 espresso shots)', 'L-theanine: 200 mg'],
+  preLift: ['Citrulline malate: 8 g in water (60 min before lifting)', 'Quince Grass-Fed Collagen Peptides Plus: 1 serving (30-60 min before lifting)', 'With a kiwi or orange (vitamin C helps collagen reach your tendons)'],
+  gym: ['Transparent Labs Hydrate: 1 scoop in your water bottle, sip during the workout'],
+  meal2: ['Quince creatine: 5 g (every day, weekends too)'],
+  dinner: ['Beta-alanine: 1.5 g', 'Cup of beef bone broth'],
+  night: ['Chamomile tea', 'Quince Magnesium Glycinate Plus: 1 scoop (2/3 scoop on days you had Hydrate)', 'Glycine: 3 g', 'Xyzal: 1 tablet'],
+  sauna: ['Transparent Labs Hydrate: 1 scoop in 500 ml water before the sauna'],
+  notes: ['Whey isolate only if you cannot hit 200 g protein from food that day.', 'Keep supplement magnesium at or under 350 mg a day.', 'Stopped on purpose: standalone vitamin D3 and zinc.', 'Nothing new added for the cut.']
 };

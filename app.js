@@ -108,25 +108,26 @@ function blocksFor(dateStr) {
   if (testsDue(dateStr)) { const tw = w >= 12 ? 12 : w >= 6 ? 6 : 0; b.push({ id: 'tests', t: toT(wake + 44), ttl: `Week-${tw} tests (15 min)`, d: tw ? 'Same tests as week 0. See how far you came.' : 'Your starting point. Quick tests + a few short videos.', tests: true }); }
   b.push({ id: 'walk', t: toT(wake + 15), ttl: 'Sun walk (20-30 min)', d: 'Outside, no sunglasses, even if cloudy.' });
   b.push({ id: 'morning', t: toT(wake + 45), ttl: `Morning routine (${rMin('morning')} min)`, d: "Tripp's 5-min routine + ankle rocks. Follow the video.", play: 'morning' });
-  b.push({ id: 'meal1', t: s.meal1, ttl: 'Meal 1 · Team Sweet', d: 'Egg + whites (or Greek yogurt), oats, berries, a little honey. Morning supplements.', team: 'Sweet' });
-  b.push({ id: 'coffee', t: toT(Math.max(wake + 60, toMin(s.meal1) + 45)), ttl: 'Coffee + L-theanine', d: 'None after 2 PM.' });
+  b.push({ id: 'meal1', t: s.meal1, ttl: 'Meal 1 · Team Sweet + morning supplements', d: '1 whole egg + 6 whites (or Greek yogurt), 80 g oats, berries, a little honey.', team: 'Sweet', take: SUPPS.am });
+  b.push({ id: 'coffee', t: toT(Math.max(wake + 60, toMin(s.meal1) + 45)), ttl: 'Coffee + L-theanine', d: 'None after 2 PM.', take: SUPPS.coffee });
   if (dow >= 1 && dow <= 5) {
     const P = dayPlan(dow, Math.max(1, w));
-    b.push({ id: 'lift', t: s.lift, ttl: `Gym: ${W.title.split(' + ')[0].split(' (')[0]} (${hm(P.t.total)})`, d: `Warm-up ${mins(P.t.warm)} · lift ${mins(P.t.lift)}${P.cardio ? ' · bike ' + mins(P.t.cardio) : ''} · stretch ${mins(P.t.fin)} · sauna 15`, gym: true });
-    b.push({ id: 'meal2', t: toT(Math.max(toMin(s.meal2), toMin(s.lift) + Math.round(P.t.total / 60) + 10)), ttl: 'Meal 2 · Team Sweet (post-lift)', d: 'Chicken/shrimp/cod + rice + fruit. Creatine 5 g.', team: 'Sweet' });
+    b.push({ id: 'prelift', t: toT(toMin(s.lift) - 60), ttl: 'Pre-gym supplements', d: 'One hour before the gym.', take: SUPPS.preLift });
+    b.push({ id: 'lift', t: s.lift, ttl: `Gym: ${W.title.split(' + ')[0].split(' (')[0]} (${hm(P.t.total)})`, d: `Warm-up ${mins(P.t.warm)} · lift ${mins(P.t.lift)}${P.cardio ? ' · bike ' + mins(P.t.cardio) : ''} · stretch ${mins(P.t.fin)} · sauna 15`, gym: true, take: SUPPS.gym });
+    b.push({ id: 'meal2', t: toT(Math.max(toMin(s.meal2), toMin(s.lift) + Math.round(P.t.total / 60) + 10)), ttl: 'Meal 2 · Team Sweet (post-lift)', d: 'Chicken, shrimp or cod + 1.5 cups white rice + fruit.', team: 'Sweet', take: SUPPS.meal2 });
   } else {
-    b.push({ id: 'meal2', t: s.meal2, ttl: 'Meal 2', d: 'Protein + pick a team.' });
+    b.push({ id: 'meal2', t: s.meal2, ttl: 'Meal 2', d: 'Protein + pick a team.', team: 'Pick', take: SUPPS.meal2 });
   }
   if (dow === 6) b.push({ id: 'pilates', t: s.pilates, ttl: 'Reformer Pilates (morning)', d: 'Plus a long walk (45-60 min) sometime today.' });
   if (dow === 0) {
     b.push({ id: 'reset', t: toT(wake + 60), ttl: `Floor reset (${rMin('floorReset')} min)`, d: 'Back, each side, stomach. 2 min each.', play: 'floorReset' });
-    b.push({ id: 'plunge', t: s.plunge, ttl: 'Sauna + cold plunge (~35 min)', d: '2 rounds: sauna, then plunge. End on cold.', play: 'contrast' });
+    b.push({ id: 'plunge', t: s.plunge, ttl: 'Sauna + cold plunge (~35 min)', d: '2 rounds: sauna, then plunge. End on cold.', play: 'contrast', take: SUPPS.sauna });
     b.push({ id: 'checkin', t: s.checkin, ttl: 'Weekly check-in + front photo (3 min)', d: 'Progress tab. The app adjusts your plan for you.', progress: true });
   }
   s.snacks.forEach((t, i) => b.push({ id: 'snack' + i, t, ttl: `Floor snack (${rMin('floor')} min)`, d: 'Phone/TV on the floor. Timer tells you when to switch.', play: 'floor', opt: true }));
-  b.push({ id: 'dinner', t: s.dinner, ttl: 'Dinner · pick a team', d: 'RICH: steak/salmon + veg + oil, no dessert. SWEET: lean protein + rice/potato + veg, yogurt bowl after.', team: 'Pick' });
+  b.push({ id: 'dinner', t: s.dinner, ttl: 'Dinner · pick a team', d: 'RICH: steak/salmon + veg + oil, no dessert. SWEET: lean protein + rice/potato + veg, yogurt bowl after.', team: 'Pick', take: SUPPS.dinner });
   b.push({ id: 'postwalk', t: toT(toMin(s.dinner) + 45), ttl: '10-min walk after dinner', d: 'Helps digestion + steps.' });
-  b.push({ id: 'evening', t: toT(bed - 60), ttl: `Wind-down (${rMin('winddown')} min)`, d: 'Face release, legs up the wall, then 2-2-4 breathing in bed. Magnesium + glycine.', play: 'winddown' });
+  b.push({ id: 'evening', t: toT(bed - 60), ttl: `Wind-down (${rMin('winddown')} min)`, d: 'Face release, legs up the wall, then 2-2-4 breathing in bed.', play: 'winddown', take: SUPPS.night });
   b.push({ id: 'screens', t: toT(bed - 45), ttl: 'Screens off, lights dim', d: 'Phone out of the bedroom.' });
   b.push({ id: 'bed', t: s.bed, ttl: 'Lights out', d: 'Room cool + pitch black. 2-2-4 breathing.' });
   return b.sort((a, c) => toMin(a.t) - toMin(c.t));
@@ -147,6 +148,9 @@ function render() {
 function go(t) { TAB = t; if (t === 'gym') GYMDAY = null; render(); }
 
 // ---------- TODAY (one thing at a time) ----------
+const takeBox = b => b.take ? `<div class="why" style="margin-top:8px;border-left:3px solid #22c55e"><b>💊 Take:</b><ul class="cues" style="margin:4px 0 0">${b.take.map(x => `<li>${x}</li>`).join('')}</ul></div>` : '';
+function openSupps() { const S2 = SUPPS, sec2 = (t, l) => `<div class="item"><b>${t}</b><ul class="cues">${l.map(x => `<li>${x}</li>`).join('')}</ul></div>`, s = S();
+  openModal('Supplements', `<div class="card"><div class="small mute">Your Superpower stack, by time of day. The Today screen shows each one when it's time.</div>${sec2(t12(s.meal1) + ' · with Meal 1', S2.am)}${sec2(t12(toT(Math.max(toMin(s.wake) + 60, toMin(s.meal1) + 45))) + ' · coffee', S2.coffee)}${sec2(t12(toT(toMin(s.lift) - 60)) + ' · gym days, 1 hr before', S2.preLift)}${sec2('During the gym', S2.gym)}${sec2('With Meal 2 (every day)', S2.meal2)}${sec2(t12(s.dinner) + ' · with dinner', S2.dinner)}${sec2('Night (wind-down)', S2.night)}${sec2('Sunday, before sauna', S2.sauna)}</div><div class="card"><h2>Notes</h2><ul class="cues">${S2.notes.map(x => `<li>${x}</li>`).join('')}</ul></div>`); }
 let OPEN = {}, LASTKEY = '';
 const winOf = b => b.gym ? 120 : 60;
 const isDone = (td, b) => !!(DB.checks[td] || {})[b.id];
@@ -156,7 +160,7 @@ function nowState(td) {
   let cur = null;
   bl.forEach(b => { const m = toMin(b.t); if (b.id !== 'bed' && m <= nm && nm < m + winOf(b) && !isDone(td, b)) cur = b; });
   const later = bl.filter(b => b !== cur && !isDone(td, b) && toMin(b.t) > nm);
-  const missed = bl.filter(b => b !== cur && !isDone(td, b) && !b.opt && toMin(b.t) + winOf(b) <= nm && !['wake', 'walk', 'coffee', 'postwalk', 'screens', 'bed', 'meal1', 'meal2', 'dinner'].includes(b.id));
+  const missed = bl.filter(b => b !== cur && !isDone(td, b) && !b.opt && toMin(b.t) + winOf(b) <= nm && !['wake', 'walk', 'coffee', 'prelift', 'postwalk', 'screens', 'bed', 'meal1', 'meal2', 'dinner'].includes(b.id));
   return { bl, cur, later, missed, nm, asleep: nm < toMin(S().wake) - 30 || nm >= toMin(S().bed) };
 }
 function todayKey() { const td = today(), st = nowState(td); return td + '|' + (st.cur ? st.cur.id : '-') + '|' + (st.later[0] ? st.later[0].id : '-') + '|' + st.asleep; }
@@ -190,7 +194,7 @@ function renderToday() {
     h += `<span class="pill">Night</span><div class="big" style="margin-top:6px">Sleep 😴</div><div class="small">Tomorrow starts at ${t12(s.wake)}: weigh in, then a sun walk.</div>`;
   } else if (st.cur) {
     const b = st.cur, tip = tipFor(b, td);
-    h += `<div class="row"><span class="pill g">Now</span><span class="tiny mute" style="margin-left:auto">${t12(b.t)}</span></div><div class="big" style="margin-top:6px">${b.ttl}</div><div class="small">${b.d}</div>${tip ? `<div class="why" style="margin-top:8px">${tip}</div>` : ''}${b.id === 'wake' ? weighBox(td) : ''}<div class="row" style="margin-top:10px">${bigBtn(b)}<button class="btn sm sec" onclick="toggle('${td}','${b.id}')">✓ Done</button></div>`;
+    h += `<div class="row"><span class="pill g">Now</span><span class="tiny mute" style="margin-left:auto">${t12(b.t)}</span></div><div class="big" style="margin-top:6px">${b.ttl}</div><div class="small">${b.d}</div>${takeBox(b)}${tip ? `<div class="why" style="margin-top:8px">${tip}</div>` : ''}${b.id === 'wake' ? weighBox(td) : ''}<div class="row" style="margin-top:10px">${bigBtn(b)}<button class="btn sm sec" onclick="toggle('${td}','${b.id}')">✓ Done</button></div>`;
   } else if (st.later.length) {
     const nx = st.later[0];
     h += `<span class="pill b">Free until ${t12(nx.t)}</span><div class="big" style="margin-top:6px">Next: ${nx.ttl}</div><div class="small" style="margin-top:6px">Meanwhile: stand up every hour for a 2-min movement break, and walk when you can (goal 10-12k steps).</div><div class="row" style="margin-top:10px"><button class="btn sm" onclick="play('moveBreak')">▶ Movement break</button>${nx.play || nx.gym ? `<button class="btn sm sec" onclick="${nx.gym ? "go('gym')" : `play('${nx.play}')`}">Start ${nx.gym ? 'workout' : 'it'} early</button>` : ''}</div>`;
@@ -204,12 +208,12 @@ function renderToday() {
     else if (dl.weight) h += `<div class="tiny mute" style="margin:0 6px 10px">✓ Weighed ${dl.weight} ${s.units} · 7-day avg ${avgWeight(td)}</div>`;
   }
   // later
-  if (st.later.length > (st.cur ? 0 : 1)) h += `<div class="card"><h2>Later today</h2>${st.later.slice(st.cur ? 0 : 1, st.cur ? 3 : 4).map(b => `<div class="item row"><div class="time" style="width:58px;color:var(--mute);font-size:13px">${t12(b.t)}</div><div style="flex:1"><b>${b.ttl}</b></div></div>`).join('')}</div>`;
+  if (st.later.length > (st.cur ? 0 : 1)) h += `<div class="card"><h2>Later today</h2>${st.later.slice(st.cur ? 0 : 1, st.cur ? 3 : 4).map(b => `<div class="item row"><div class="time" style="width:58px;color:var(--mute);font-size:13px">${t12(b.t)}</div><div style="flex:1"><b>${b.ttl}</b>${b.take ? `<div class="tiny mute">💊 ${b.take.map(x => x.split(':')[0]).join(', ')}</div>` : ''}</div></div>`).join('')}</div>`;
   // missed
   if (st.missed.length && !st.asleep) h += `<div class="card"><div class="small"><b>Didn't get to:</b> ${st.missed.map(b => `${b.play ? `<button class="linkish" onclick="play('${b.play}')">${b.ttl.split(' (')[0]}</button>` : b.gym ? `<button class="linkish" onclick="go('gym')">${b.ttl.split(' (')[0]}</button>` : b.tests ? `<button class="linkish" onclick="PROGTAB='tests';go('progress')">${b.ttl.split(' (')[0]}</button>` : b.ttl.split(' (')[0]}`).join(' · ')}</div><div class="tiny mute">Do it if you can. If the day is gone, skip it. Never double up.</div></div>`;
   // tucked away
   const ch = DB.checks[td] || {};
-  h += `<details class="card" ${OPEN.full ? 'open' : ''} ontoggle="OPEN.full=this.open"><summary><b>Full day</b> <span class="tiny mute">${st.bl.filter(b => ch[b.id]).length}/${st.bl.length} done</span></summary><ul class="tl" style="margin-top:8px">${st.bl.map(b => `<li class="${ch[b.id] ? 'done' : ''}"><div class="time">${t12(b.t)}</div><div class="body"><div class="ttl">${b.ttl}</div><div class="d">${b.d}</div>${actLink(b)}</div><button class="chk ${ch[b.id] ? 'on' : ''}" onclick="toggle('${td}','${b.id}')">${ch[b.id] ? '✓' : ''}</button></li>`).join('')}</ul></details>`;
+  h += `<details class="card" ${OPEN.full ? 'open' : ''} ontoggle="OPEN.full=this.open"><summary><b>Full day</b> <span class="tiny mute">${st.bl.filter(b => ch[b.id]).length}/${st.bl.length} done</span></summary><ul class="tl" style="margin-top:8px">${st.bl.map(b => `<li class="${ch[b.id] ? 'done' : ''}"><div class="time">${t12(b.t)}</div><div class="body"><div class="ttl">${b.ttl}</div><div class="d">${b.d}</div>${b.take ? `<div class="d">💊 ${b.take.join(' · ')}</div>` : ''}${actLink(b)}</div><button class="chk ${ch[b.id] ? 'on' : ''}" onclick="toggle('${td}','${b.id}')">${ch[b.id] ? '✓' : ''}</button></li>`).join('')}</ul></details>`;
   h += `<details class="card" ${OPEN.log ? 'open' : ''} ontoggle="OPEN.log=this.open"><summary><b>Log more</b> <span class="tiny mute">optional: steps, stiffness, pain, protein</span></summary>
    <div class="grid2" style="margin-top:8px"><label class="fld"><span>Steps</span><input inputmode="numeric" value="${dl.steps || ''}" onchange="setDaily('steps',this.value)"></label>
    <label class="fld"><span>Morning stiffness (min)</span><input inputmode="numeric" value="${dl.stiff || ''}" onchange="setDaily('stiff',this.value)"></label>
@@ -323,7 +327,7 @@ function renderGym() {
   if (W.rest) { html += `<div class="card"><h2>${W.title}</h2><ul class="cues">${W.items.map(i => `<li>${i}</li>`).join('')}</ul>${dow === 0 ? `<button class="btn sec" onclick="play('floorReset')">▶ Floor reset (${rMin('floorReset')} min)</button> <button class="btn sec" style="margin-top:8px" onclick="play('contrast')">▶ Sauna + cold plunge</button>` : ''}</div>`; $('#main').innerHTML = html; return; }
   const DP = dayPlan(dow, w), sess = sessionFor(td, W.key), T = DP.t;
   html += `<div class="card"><div class="row"><h2 style="flex:1;margin:0">${W.title}</h2>${sess.done ? '<span class="pill g">Done ✓</span>' : ''}</div><div class="small mute">${W.focus}</div><div style="margin-top:6px"><span class="pill b">Week ${w}</span><span class="pill">${phaseOf(w).name}</span>${DP.deload ? '<span class="pill y">Deload: 1/3 fewer sets</span>' : ''}</div>
-  <div class="small" style="margin-top:10px"><b>Total ≈ ${hm(T.total)}</b>: warm-up ${mins(T.warm)} · lift ${mins(T.lift)}${T.cardio ? ' · bike ' + mins(T.cardio) : ''} · stretch ${mins(T.fin)} · sauna 15</div></div>`;
+  <div class="small" style="margin-top:8px">💊 1 hr before: citrulline 8 g + collagen + kiwi/orange. In your bottle: Hydrate 1 scoop. <button class="linkish" onclick="openSupps()">All supplements</button></div><div class="small" style="margin-top:10px"><b>Total ≈ ${hm(T.total)}</b>: warm-up ${mins(T.warm)} · lift ${mins(T.lift)}${T.cardio ? ' · bike ' + mins(T.cardio) : ''} · stretch ${mins(T.fin)} · sauna 15</div></div>`;
   // filming
   if (W.film && PLAN.filmWeeks.includes(w)) {
     const fk = w + '_' + W.key, ff = DB.formfilms[fk] || {}, lift = W.ex.find(e => e.film);
@@ -383,7 +387,7 @@ function renderLearn() {
   const groups = [...new Set(LESSONS.map(l => l.group))];
   let html = `<div class="card"><h2>Learn in 1-3 minutes</h2><div class="small mute">Swipe through short cards. Tap "Deep dive" for the full research when you have time.</div><div class="bar" style="margin-top:10px"><i style="width:${Math.round(100 * Object.keys(DB.seen).length / LESSONS.length)}%"></i></div><div class="tiny mute" style="margin-top:4px">${Object.keys(DB.seen).length} of ${LESSONS.length} lessons seen</div></div>`;
   groups.forEach(g => { html += `<h3 style="margin:16px 4px 8px;color:var(--mute);font-size:13px;text-transform:uppercase">${g}</h3><div class="lessons">${LESSONS.filter(l => l.group === g).map(l => `<button class="lesson ${DB.seen[l.id] ? 'seen' : ''}" onclick="openLesson('${l.id}')"><div class="t">${l.title}</div><div class="tiny mute">${l.min} min · ${l.cards.length} cards ${DB.seen[l.id] ? '· ✓' : ''}</div></button>`).join('')}</div>`; });
-  html += `<h3 style="margin:18px 4px 8px;color:var(--mute);font-size:13px;text-transform:uppercase">Routines (follow along)</h3><div class="lessons">${Object.entries(ROUTINES).map(([k, r]) => `<button class="lesson" onclick="openRoutine('${k}')"><div class="t">${r.title}</div><div class="tiny mute">${rMin(k)} min · ${r.items.length} steps</div></button>`).join('')}<button class="lesson" onclick="openFood()"><div class="t">Food: pick a team</div><div class="tiny mute">Meals + targets</div></button></div>`;
+  html += `<h3 style="margin:18px 4px 8px;color:var(--mute);font-size:13px;text-transform:uppercase">Routines (follow along)</h3><div class="lessons">${Object.entries(ROUTINES).map(([k, r]) => `<button class="lesson" onclick="openRoutine('${k}')"><div class="t">${r.title}</div><div class="tiny mute">${rMin(k)} min · ${r.items.length} steps</div></button>`).join('')}<button class="lesson" onclick="openFood()"><div class="t">Food: pick a team</div><div class="tiny mute">Meals + targets</div></button><button class="lesson" onclick="openSupps()"><div class="t">Supplements</div><div class="tiny mute">What, how much, when</div></button></div>`;
   html += `<h3 style="margin:18px 4px 8px;color:var(--mute);font-size:13px;text-transform:uppercase">Library (full research)</h3><div class="card">${LIBRARY.map(d => `<button class="linkish" style="display:block;font-size:15px;margin:8px 0" onclick="openDoc('${d.id}')">📄 ${d.title}</button>`).join('')}</div>`;
   $('#main').innerHTML = html;
 }

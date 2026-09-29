@@ -171,9 +171,13 @@ window.LESSONS = [
   ]},
 
   { id: 'supps', group: 'Food + metabolism', title: 'Supplements', min: 1, cards: [
-    { h: 'Your stack is enough', b: 'Creatine, magnesium, glycine, omega-3, collagen, whey, greens, ashwagandha, beta-alanine, citrulline, theanine, electrolytes. Add nothing for the cut.' },
-    { h: 'One tweak', b: 'Collagen 30-60 min before ankle/tendon work with some vitamin C (kiwi or orange).' },
-    { h: 'Skip list', b: 'Raw milk/meat, 72-hr fasts, mega vitamin D, methylene blue, stem-cell clinics, "deuterium", "fabric frequency", ivermectin/chlorine dioxide for colds.' }
+    { h: 'Morning, with Meal 1', b: 'Greens 1 scoop · omega-3 1 softgel · ashwagandha 600 mg · beta-alanine 3 g.' },
+    { h: 'Coffee', b: 'About 200 mg caffeine + L-theanine 200 mg. None after 2 PM.' },
+    { h: 'Gym days', b: '1 hr before: citrulline malate 8 g + collagen 1 serving + a kiwi or orange.\nDuring: Hydrate 1 scoop in your bottle.' },
+    { h: 'Meal 2 + dinner', b: 'Meal 2: creatine 5 g (every day).\nDinner: beta-alanine 1.5 g + a cup of bone broth.' },
+    { h: 'Night', b: 'Chamomile · magnesium glycinate 1 scoop (2/3 on Hydrate days) · glycine 3 g · Xyzal 1 tablet.' },
+    { h: 'Rules', b: 'Whey only if you are short on protein. Magnesium max 350 mg/day. D3 and zinc stopped. Nothing new for the cut.' },
+    { h: 'Skip list', b: 'Raw milk/meat, 72-hr fasts, mega vitamin D, methylene blue, stem-cell clinics, "deuterium", "fabric frequency", ivermectin/chlorine dioxide for colds, debloat+.' }
   ]},
 
   { id: 'pain', group: 'Recovery', title: 'Pain rules + red flags', min: 1, cards: [
