@@ -105,6 +105,7 @@ function blocksFor(dateStr) {
   const wake = toMin(s.wake), bed = toMin(s.bed);
   const b = [];
   b.push({ id: 'wake', t: s.wake, ttl: 'Wake up + weigh in', d: 'Weigh yourself after the bathroom, before food. Type it on the Today screen. Water + pinch of salt.' });
+  if (testsDue(dateStr)) { const tw = w >= 12 ? 12 : w >= 6 ? 6 : 0; b.push({ id: 'tests', t: toT(wake + 44), ttl: `Week-${tw} tests (15 min)`, d: tw ? 'Same tests as week 0. See how far you came.' : 'Your starting point. Quick tests + a few short videos.', tests: true }); }
   b.push({ id: 'walk', t: toT(wake + 15), ttl: 'Sun walk (20-30 min)', d: 'Outside, no sunglasses, even if cloudy.' });
   b.push({ id: 'morning', t: toT(wake + 45), ttl: `Morning routine (${rMin('morning')} min)`, d: "Tripp's 5-min routine + ankle rocks. Follow the video.", play: 'morning' });
   b.push({ id: 'meal1', t: s.meal1, ttl: 'Meal 1 · Team Sweet', d: 'Egg + whites (or Greek yogurt), oats, berries, a little honey. Morning supplements.', team: 'Sweet' });
@@ -134,57 +135,94 @@ function blocksFor(dateStr) {
 // ---------- router ----------
 let TAB = 'today', GYMDAY = null, PROGTAB = 'week';
 function render() {
-  if (!DB.onboarded) return renderOnboarding();
   const app = $('#app');
   const s = S(), td = today(), w = weekOf(td), ph = phaseOf(Math.max(1, w));
   const title = { today: 'Today', gym: 'Gym', learn: 'Learn', progress: 'Progress' }[TAB];
-  app.innerHTML = `<header><div style="flex:1"><h1>${title}</h1><div class="sub">${fmtDate(td)} · ${w === 0 ? 'Starts ' + fmtDate(s.start) : 'Week ' + w + ' of 12 · ' + ph.name}</div></div><button class="iconbtn" onclick="openSettings()">⚙︎</button></header><main id="main"></main>
+  const dayName = w === 0 ? 'Plan starts ' + fmtDate(s.start) : 'Week ' + w + ' of 12 · ' + ph.name + (PLAN.deloadWeeks.includes(w) ? ' · easy week' : '');
+  app.innerHTML = `<header><div style="flex:1"><h1>${TAB === 'today' ? ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][parseYmd(td).getDay()] : title}</h1><div class="sub">${TAB === 'today' ? fmtDate(td).slice(4) + ' · ' : ''}${dayName}</div></div><button class="iconbtn" onclick="openSettings()">⚙︎</button></header><main id="main"></main>
   <nav>${[['today', '☀︎', 'Today'], ['gym', '🏋︎', 'Gym'], ['learn', '📖', 'Learn'], ['progress', '📈', 'Progress']].map(([k, ic, l]) => `<button class="${TAB === k ? 'on' : ''}" onclick="go('${k}')"><span class="ic">${ic}</span>${l}</button>`).join('')}</nav>`;
   ({ today: renderToday, gym: renderGym, learn: renderLearn, progress: renderProgress })[TAB]();
   window.scrollTo(0, 0);
 }
 function go(t) { TAB = t; if (t === 'gym') GYMDAY = null; render(); }
 
-// ---------- TODAY ----------
+// ---------- TODAY (one thing at a time) ----------
+let OPEN = {}, LASTKEY = '';
+const winOf = b => b.gym ? 120 : 60;
+const isDone = (td, b) => !!(DB.checks[td] || {})[b.id];
+function testsDue(td) { const w = weekOf(td); if (w <= 1) return !testsDone(0); if (w === 6 || w === 12) return !testsDone(w); return false; }
+function nowState(td) {
+  const bl = blocksFor(td), n = new Date(), nm = n.getHours() * 60 + n.getMinutes();
+  let cur = null;
+  bl.forEach(b => { const m = toMin(b.t); if (b.id !== 'bed' && m <= nm && nm < m + winOf(b) && !isDone(td, b)) cur = b; });
+  const later = bl.filter(b => b !== cur && !isDone(td, b) && toMin(b.t) > nm);
+  const missed = bl.filter(b => b !== cur && !isDone(td, b) && !b.opt && toMin(b.t) + winOf(b) <= nm && !['wake', 'walk', 'coffee', 'postwalk', 'screens', 'bed', 'meal1', 'meal2', 'dinner'].includes(b.id));
+  return { bl, cur, later, missed, nm, asleep: nm < toMin(S().wake) - 30 || nm >= toMin(S().bed) };
+}
+function todayKey() { const td = today(), st = nowState(td); return td + '|' + (st.cur ? st.cur.id : '-') + '|' + (st.later[0] ? st.later[0].id : '-') + '|' + st.asleep; }
+function tipFor(b, td) {
+  const dow = parseYmd(td).getDay(), id = b.id;
+  if (b.team) return 'Pick a team: protein + Sweet (rice, fruit, oats, honey) OR protein + Rich (steak, salmon, oil, avocado). Not both. Veggies first, stop at 80% full.';
+  if (id === 'coffee') return 'Salted water first. No coffee after 2 PM.';
+  if (b.gym) return 'Left side first on one-leg and one-arm moves. Pain up to 3/10 is OK if it is gone by tomorrow. Sharp pain = stop or swap.';
+  if (id === 'walk') return 'Outside, no sunglasses, even if cloudy.';
+  if (id === 'evening' || id === 'screens' || id === 'postwalk') return (dow === 5 || dow === 6) ? 'Drinking tonight? 3-4 max, water between, no sauna tonight, no heavy legs tomorrow.' : 'Sleep on your back or switch sides. Room cool and dark.';
+  return '';
+}
+function bigBtn(b) {
+  if (b.gym) return `<button class="btn" onclick="go('gym')">▶ Start workout</button>`;
+  if (b.play) return `<button class="btn" onclick="play('${b.play}')">▶ Follow along</button>`;
+  if (b.tests) return `<button class="btn" onclick="PROGTAB='tests';go('progress')">▶ Open tests</button>`;
+  if (b.progress) return `<button class="btn" onclick="PROGTAB='week';go('progress')">▶ Check in</button>`;
+  if (b.team) return `<button class="btn sec" onclick="openFood()">What to eat</button>`;
+  return '';
+}
+function weighBox(td) { const dl = DB.daily[td] || {}; return `<div class="row" style="margin-top:10px"><input id="wtin" inputmode="decimal" placeholder="Weight (${S().units})" value="${dl.weight || ''}" style="flex:1;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px;font-size:17px"><button class="btn sm" onclick="logWeight()">Save</button></div>`; }
+function logWeight() { const v = ($('#wtin') || {}).value; if (!v) return; const td = today(); DB.daily[td] = DB.daily[td] || {}; DB.daily[td].weight = v; DB.checks[td] = DB.checks[td] || {}; DB.checks[td].wake = true; save(); toast('Saved ' + v); render(); }
 function renderToday() {
-  const td = today(), w = weekOf(td), ph = phaseOf(Math.max(1, w)), bl = blocksFor(td), ch = DB.checks[td] || {};
-  const now = new Date(), nm = now.getHours() * 60 + now.getMinutes();
-  const req = bl.filter(b => !b.opt), doneN = req.filter(b => ch[b.id]).length;
-  const next = bl.find(b => !ch[b.id] && toMin(b.t) + 30 >= nm) || bl.find(b => !ch[b.id]);
-  let html = '';
-  if (w === 0 || (w === 1 && !testsDone(0))) html += banner('Week-0 tests (15 min)', 'Before your first workout: quick tests + a few short videos. This is your starting point.', `PROGTAB='tests';go('progress')`);
-  if ((w === 6 || w === 12) && !testsDone(w)) html += banner(`Week-${w} retest`, 'Same tests as week 0. See how far you came.', `PROGTAB='tests';go('progress')`);
-  if (PLAN.deloadWeeks.includes(w)) html += `<div class="card"><span class="pill y">Easy week</span> <b>Deload week.</b> <span class="small mute">The Gym tab already cuts your sets by 1/3.</span></div>`;
-  html += `<div class="card next"><div class="row"><span class="pill g">Up next</span><span class="small mute" style="margin-left:auto">${doneN}/${req.length} done</span></div>`;
-  if (next) html += `<div class="big">${t12(next.t)} · ${next.ttl}</div><div class="small">${next.d}</div><div class="row" style="margin-top:10px">${actBtn(next)}<button class="btn sm sec" onclick="toggle('${td}','${next.id}')">✓ Done</button></div>`;
-  else html += `<div class="big">All done today 🎉</div><div class="small">Sleep well.</div>`;
-  html += `<div class="bar" style="margin-top:12px"><i style="width:${Math.round(100 * doneN / Math.max(1, req.length))}%"></i></div></div>`;
-  html += bodyCard(td);
-  html += `<div class="card"><h2>Today's plan</h2><ul class="tl">${bl.map(b => `<li class="${ch[b.id] ? 'done' : ''}"><div class="time">${t12(b.t)}</div><div class="body"><div class="ttl">${b.ttl}${b.opt ? ' <span class="pill">flex</span>' : ''}</div><div class="d">${b.d}</div>${actLink(b)}</div><button class="chk ${ch[b.id] ? 'on' : ''}" onclick="toggle('${td}','${b.id}')">${ch[b.id] ? '✓' : ''}</button></li>`).join('')}</ul></div>`;
-  html += `<div class="card"><h2>Remember all day (no schedule)</h2>${RULES.map(r => `<details style="margin:6px 0"><summary><b>${r.t}</b></summary><div class="small mute" style="margin:4px 0 0 16px">${r.d}</div>${r.v ? `<div style="margin-left:16px">${ytBtn(r.v)}</div>` : ''}</details>`).join('')}<button class="btn sm" style="margin-top:6px" onclick="play('moveBreak')">▶ Movement break (${rMin('moveBreak')} min)</button></div>`;
-  html += `<div class="card"><h2>This phase: ${ph.name}</h2><div class="small">${ph.goal}</div></div>`;
-  const dl = DB.daily[td] || {};
-  html += `<div class="card"><h2>Quick log</h2>
-   <div class="grid2"><label class="fld"><span>Steps (optional, from your phone)</span><input inputmode="numeric" value="${dl.steps || ''}" onchange="setDaily('steps',this.value)"></label>
+  const td = today(), st = nowState(td), s = S(), dl = DB.daily[td] || {};
+  LASTKEY = todayKey();
+  let h = '';
+  if (!DB.introSeen) h += `<div class="card"><div class="row"><div class="small" style="flex:1">Using a default day (wake ${t12(s.wake)}, gym ${t12(s.lift)}). Change times any time in ⚙︎.</div><button class="btn sm sec" onclick="DB.introSeen=1;save();render()">OK</button></div></div>`;
+  // NOW
+  h += `<div class="card next">`;
+  if (st.asleep && !st.cur) {
+    h += `<span class="pill">Night</span><div class="big" style="margin-top:6px">Sleep 😴</div><div class="small">Tomorrow starts at ${t12(s.wake)}: weigh in, then a sun walk.</div>`;
+  } else if (st.cur) {
+    const b = st.cur, tip = tipFor(b, td);
+    h += `<div class="row"><span class="pill g">Now</span><span class="tiny mute" style="margin-left:auto">${t12(b.t)}</span></div><div class="big" style="margin-top:6px">${b.ttl}</div><div class="small">${b.d}</div>${tip ? `<div class="why" style="margin-top:8px">${tip}</div>` : ''}${b.id === 'wake' ? weighBox(td) : ''}<div class="row" style="margin-top:10px">${bigBtn(b)}<button class="btn sm sec" onclick="toggle('${td}','${b.id}')">✓ Done</button></div>`;
+  } else if (st.later.length) {
+    const nx = st.later[0];
+    h += `<span class="pill b">Free until ${t12(nx.t)}</span><div class="big" style="margin-top:6px">Next: ${nx.ttl}</div><div class="small" style="margin-top:6px">Meanwhile: stand up every hour for a 2-min movement break, and walk when you can (goal 10-12k steps).</div><div class="row" style="margin-top:10px"><button class="btn sm" onclick="play('moveBreak')">▶ Movement break</button>${nx.play || nx.gym ? `<button class="btn sm sec" onclick="${nx.gym ? "go('gym')" : `play('${nx.play}')`}">Start ${nx.gym ? 'workout' : 'it'} early</button>` : ''}</div>`;
+  } else {
+    h += `<span class="pill g">Done</span><div class="big" style="margin-top:6px">That's today 🎉</div><div class="small">Screens off soon, lights out at ${t12(s.bed)}.</div>`;
+  }
+  h += `</div>`;
+  // weigh-in (only if not already in the Now card)
+  if (!(st.cur && st.cur.id === 'wake')) {
+    if (!dl.weight && st.nm < 14 * 60 && !st.asleep) h += `<div class="card"><b>Weigh-in</b> <span class="tiny mute">morning, before food</span>${weighBox(td)}</div>`;
+    else if (dl.weight) h += `<div class="tiny mute" style="margin:0 6px 10px">✓ Weighed ${dl.weight} ${s.units} · 7-day avg ${avgWeight(td)}</div>`;
+  }
+  // later
+  if (st.later.length > (st.cur ? 0 : 1)) h += `<div class="card"><h2>Later today</h2>${st.later.slice(st.cur ? 0 : 1, st.cur ? 3 : 4).map(b => `<div class="item row"><div class="time" style="width:58px;color:var(--mute);font-size:13px">${t12(b.t)}</div><div style="flex:1"><b>${b.ttl}</b></div></div>`).join('')}</div>`;
+  // missed
+  if (st.missed.length && !st.asleep) h += `<div class="card"><div class="small"><b>Didn't get to:</b> ${st.missed.map(b => `${b.play ? `<button class="linkish" onclick="play('${b.play}')">${b.ttl.split(' (')[0]}</button>` : b.gym ? `<button class="linkish" onclick="go('gym')">${b.ttl.split(' (')[0]}</button>` : b.tests ? `<button class="linkish" onclick="PROGTAB='tests';go('progress')">${b.ttl.split(' (')[0]}</button>` : b.ttl.split(' (')[0]}`).join(' · ')}</div><div class="tiny mute">Do it if you can. If the day is gone, skip it. Never double up.</div></div>`;
+  // tucked away
+  const ch = DB.checks[td] || {};
+  h += `<details class="card" ${OPEN.full ? 'open' : ''} ontoggle="OPEN.full=this.open"><summary><b>Full day</b> <span class="tiny mute">${st.bl.filter(b => ch[b.id]).length}/${st.bl.length} done</span></summary><ul class="tl" style="margin-top:8px">${st.bl.map(b => `<li class="${ch[b.id] ? 'done' : ''}"><div class="time">${t12(b.t)}</div><div class="body"><div class="ttl">${b.ttl}</div><div class="d">${b.d}</div>${actLink(b)}</div><button class="chk ${ch[b.id] ? 'on' : ''}" onclick="toggle('${td}','${b.id}')">${ch[b.id] ? '✓' : ''}</button></li>`).join('')}</ul></details>`;
+  h += `<details class="card" ${OPEN.log ? 'open' : ''} ontoggle="OPEN.log=this.open"><summary><b>Log more</b> <span class="tiny mute">optional: steps, stiffness, pain, protein</span></summary>
+   <div class="grid2" style="margin-top:8px"><label class="fld"><span>Steps</span><input inputmode="numeric" value="${dl.steps || ''}" onchange="setDaily('steps',this.value)"></label>
    <label class="fld"><span>Morning stiffness (min)</span><input inputmode="numeric" value="${dl.stiff || ''}" onchange="setDaily('stiff',this.value)"></label>
-   <label class="fld"><span>Drinks today</span><input inputmode="numeric" value="${dl.drinks || ''}" onchange="setDaily('drinks',this.value)"></label></div>
+   <label class="fld"><span>Drinks</span><input inputmode="numeric" value="${dl.drinks || ''}" onchange="setDaily('drinks',this.value)"></label></div>
    <div class="fld"><span>Protein (3 x ~67 g)</span><div class="row">${[0, 1, 2].map(i => `<button class="chk ${(dl.protein || [])[i] ? 'on' : ''}" onclick="protein(${i})">${(dl.protein || [])[i] ? '✓' : ''}</button>`).join('')}<span class="small mute">Meal 1 · Meal 2 · Dinner</span></div></div>
-   <div class="fld"><span>Pain today (0-10). Rule: 3 max, gone by morning.</span>${painInputs(dl.pain || {}, 'setPain')}</div>
-   <label class="fld"><span>Notes</span><textarea rows="2" onchange="setDaily('notes',this.value)">${dl.notes || ''}</textarea></label></div>`;
-  $('#main').innerHTML = html;
+   <div class="fld"><span>Pain (0-10). OK up to 3 if gone by morning.</span>${painInputs(dl.pain || {}, 'setPain')}</div>
+   <label class="fld"><span>Notes</span><textarea rows="2" onchange="setDaily('notes',this.value)">${dl.notes || ''}</textarea></label></details>`;
+  $('#main').innerHTML = h;
 }
-function bodyCard(td) {
-  const lb = latestBody(), dl = DB.daily[td] || {}, st = +(dl.steps || 0), aw = avgWeight(td);
-  return `<div class="card"><h2>Weigh-in</h2>
-  <div class="grid2"><label class="fld"><span>Today's weight (${S().units})</span><input inputmode="decimal" placeholder="type it" value="${dl.weight || ''}" onchange="setDaily('weight',this.value);render()"></label>
-  <div><div class="tiny mute">7-day average</div><div class="stat">${aw || '—'}</div><div class="tiny mute">${lb ? 'Last: ' + lb.w + ' on ' + fmtDate(lb.d) : 'Morning, after the bathroom, before food'}</div></div></div>
-  <div class="tiny mute">Missed a day? No problem. The average only needs 4-5 weigh-ins a week.${st ? ' · Steps today: ' + st.toLocaleString() : ''}</div></div>`;
-}
-function banner(t, d, act) { return `<div class="card" style="border-color:#7c5a12;background:#231a0b"><div class="row"><span class="pill y">To do</span><b>${t}</b></div><div class="small" style="margin:6px 0 10px">${d}</div><button class="btn sm" onclick="${act}">Open</button></div>`; }
-function actBtn(b) { if (b.gym) return `<button class="btn sm" onclick="go('gym')">Start workout</button>`; if (b.play) return `<button class="btn sm" onclick="play('${b.play}')">▶ Follow along</button>`; if (b.progress) return `<button class="btn sm" onclick="PROGTAB='week';go('progress')">Check in</button>`; if (b.team) return `<button class="btn sm" onclick="openFood()">Food rules</button>`; return ''; }
-function actLink(b) { if (b.gym) return `<button class="linkish" onclick="go('gym')">▶ Open workout</button>`; if (b.play) return `<button class="linkish" onclick="play('${b.play}')">▶ Follow along</button> <button class="linkish" onclick="openRoutine('${b.play}')">· see all steps</button>`; if (b.progress) return `<button class="linkish" onclick="PROGTAB='week';go('progress')">▶ Check in</button>`; if (b.team) return `<button class="linkish" onclick="openFood()">▶ Pick-a-team guide</button>`; return ''; }
+function actBtn(b) { if (b.tests) return `<button class="btn sm" onclick="PROGTAB='tests';go('progress')">Open tests</button>`; if (b.gym) return `<button class="btn sm" onclick="go('gym')">Start workout</button>`; if (b.play) return `<button class="btn sm" onclick="play('${b.play}')">▶ Follow along</button>`; if (b.progress) return `<button class="btn sm" onclick="PROGTAB='week';go('progress')">Check in</button>`; if (b.team) return `<button class="btn sm" onclick="openFood()">Food rules</button>`; return ''; }
+function actLink(b) { if (b.tests) return `<button class="linkish" onclick="PROGTAB='tests';go('progress')">▶ Open tests</button>`; if (b.gym) return `<button class="linkish" onclick="go('gym')">▶ Open workout</button>`; if (b.play) return `<button class="linkish" onclick="play('${b.play}')">▶ Follow along</button> <button class="linkish" onclick="openRoutine('${b.play}')">· see all steps</button>`; if (b.progress) return `<button class="linkish" onclick="PROGTAB='week';go('progress')">▶ Check in</button>`; if (b.team) return `<button class="linkish" onclick="openFood()">▶ Pick-a-team guide</button>`; return ''; }
 function toggle(d, id) { DB.checks[d] = DB.checks[d] || {}; DB.checks[d][id] = !DB.checks[d][id]; save(); render(); }
-function setDaily(k, v) { const d = today(); DB.daily[d] = DB.daily[d] || {}; DB.daily[d][k] = v; save(); toast('Saved'); }
+function setDaily(k, v) { const d = today(); DB.daily[d] = DB.daily[d] || {}; DB.daily[d][k] = v; if (k === 'weight' && v) { DB.checks[d] = DB.checks[d] || {}; DB.checks[d].wake = true; } save(); toast('Saved'); }
 function protein(i) { const d = today(); DB.daily[d] = DB.daily[d] || {}; const p = DB.daily[d].protein || [0, 0, 0]; p[i] = !p[i]; DB.daily[d].protein = p; save(); render(); }
 const AREAS = [['back', 'Low back'], ['knees', 'Knees'], ['ankles', 'Ankles/feet'], ['hips', 'Hips/groin'], ['neck', 'Neck/shoulders']];
 function painInputs(p, fn) { return AREAS.map(([k, l]) => `<div class="painrow"><span>${l}</span><input type="range" min="0" max="10" value="${p[k] || 0}" oninput="this.nextElementSibling.textContent=this.value" onchange="${fn}('${k}',this.value)"><b style="width:22px;text-align:right">${p[k] || 0}</b></div>`).join(''); }
@@ -489,7 +527,7 @@ function openSettings() {
   ${shortcutCard()}
   <div class="card"><h2>Reminders on your phone</h2><div class="small">Adds every block (morning routine, gym, floor snacks, wind-down, Sunday plunge + check-in, retests) to your calendar with alerts, for all 12 weeks.</div><button class="btn" style="margin-top:10px" onclick="downloadICS()">📅 Add to my calendar</button><div class="tiny mute" style="margin-top:6px">Tap it, then "Add All". Changed your times? Delete the old "Rene Plan" calendar first, then add again.</div></div>
   <div class="card"><h2>Backup</h2><div class="small mute">Your data lives only on this phone. Back it up every few weeks.</div><div class="row" style="margin-top:8px"><button class="btn sm sec" onclick="exportData()">Export backup</button><label class="btn sm sec">Import<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label></div></div>
-  <div class="card"><button class="btn sm sec" onclick="if(confirm('Redo the setup? Your logs stay.')){DB.onboarded=false;save();closeModal();render()}">Redo setup</button></div>`);
+  <div class="card"><h2>Home screen</h2><div class="small">In Safari: <b>Share → Add to Home Screen</b>. Always open it from that icon; your logs live there.</div></div>`);
 }
 function schedFields(s) {
   const f = (k, l) => `<label class="fld"><span>${l}</span><input type="time" id="s_${k}" value="${s[k]}"></label>`;
@@ -553,4 +591,8 @@ handleSync();
 window.addEventListener('hashchange', () => { if (/^#sync/.test(sdec(location.hash))) { handleSync(); render(); } });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
 render();
-setInterval(() => { if (TAB === 'today' && !$('#modal').classList.contains('on') && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') renderToday(); }, 60000);
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) { }
+const idle = () => !$('#modal').classList.contains('on') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+setInterval(() => { if (TAB === 'today' && idle() && todayKey() !== LASTKEY) render(); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && idle()) { if (TAB === 'today' || DB.lastDay !== today()) { TAB = TAB === 'gym' && DB.lastDay === today() ? 'gym' : 'today'; } DB.lastDay = today(); save(); render(); } });
+DB.lastDay = today(); save();

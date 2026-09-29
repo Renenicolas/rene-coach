@@ -197,3 +197,6 @@ window.LIBRARY = [
   { id: 'evidence', title: 'Evidence: ankles, pain, athletic lifting', file: 'md/evidence.md' },
   { id: 'bio', title: 'Evidence: metabolism / bioenergetics', file: 'md/bio.md' }
 ];
+
+// The all-day rules live here now (Today only shows the one that matters right now).
+LESSONS.splice(1, 0, { id: 'rules', group: 'Start here', title: 'The daily rules', min: 1, cards: RULES.map(r => ({ h: r.t, b: r.d })) });
