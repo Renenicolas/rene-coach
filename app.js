@@ -104,7 +104,7 @@ function blocksFor(dateStr) {
   const s = S(), d = parseYmd(dateStr), dow = d.getDay(), w = weekOf(dateStr), W = WORKOUTS[dow];
   const wake = toMin(s.wake), bed = toMin(s.bed);
   const b = [];
-  b.push({ id: 'wake', t: s.wake, ttl: 'Wake up + weigh in', d: 'Step on the Hume, then open the app from your Shortcut so it fills in. Water + pinch of salt.' });
+  b.push({ id: 'wake', t: s.wake, ttl: 'Wake up + weigh in', d: 'Weigh yourself after the bathroom, before food. Type it on the Today screen. Water + pinch of salt.' });
   b.push({ id: 'walk', t: toT(wake + 15), ttl: 'Sun walk (20-30 min)', d: 'Outside, no sunglasses, even if cloudy.' });
   b.push({ id: 'morning', t: toT(wake + 45), ttl: `Morning routine (${rMin('morning')} min)`, d: "Tripp's 5-min routine + ankle rocks. Follow the video.", play: 'morning' });
   b.push({ id: 'meal1', t: s.meal1, ttl: 'Meal 1 · Team Sweet', d: 'Egg + whites (or Greek yogurt), oats, berries, a little honey. Morning supplements.', team: 'Sweet' });
@@ -164,9 +164,8 @@ function renderToday() {
   html += `<div class="card"><h2>Remember all day (no schedule)</h2>${RULES.map(r => `<details style="margin:6px 0"><summary><b>${r.t}</b></summary><div class="small mute" style="margin:4px 0 0 16px">${r.d}</div>${r.v ? `<div style="margin-left:16px">${ytBtn(r.v)}</div>` : ''}</details>`).join('')}<button class="btn sm" style="margin-top:6px" onclick="play('moveBreak')">▶ Movement break (${rMin('moveBreak')} min)</button></div>`;
   html += `<div class="card"><h2>This phase: ${ph.name}</h2><div class="small">${ph.goal}</div></div>`;
   const dl = DB.daily[td] || {};
-  html += `<div class="card"><h2>Quick log</h2><div class="tiny mute" style="margin-bottom:6px">Weight, body fat and steps fill in by themselves when you open the app from your Shortcut.</div>
-   <div class="grid2"><label class="fld"><span>Weight (${S().units})</span><input inputmode="decimal" value="${dl.weight || ''}" onchange="setDaily('weight',this.value)"></label>
-   <label class="fld"><span>Steps</span><input inputmode="numeric" value="${dl.steps || ''}" onchange="setDaily('steps',this.value)"></label>
+  html += `<div class="card"><h2>Quick log</h2>
+   <div class="grid2"><label class="fld"><span>Steps (optional, from your phone)</span><input inputmode="numeric" value="${dl.steps || ''}" onchange="setDaily('steps',this.value)"></label>
    <label class="fld"><span>Morning stiffness (min)</span><input inputmode="numeric" value="${dl.stiff || ''}" onchange="setDaily('stiff',this.value)"></label>
    <label class="fld"><span>Drinks today</span><input inputmode="numeric" value="${dl.drinks || ''}" onchange="setDaily('drinks',this.value)"></label></div>
    <div class="fld"><span>Protein (3 x ~67 g)</span><div class="row">${[0, 1, 2].map(i => `<button class="chk ${(dl.protein || [])[i] ? 'on' : ''}" onclick="protein(${i})">${(dl.protein || [])[i] ? '✓' : ''}</button>`).join('')}<span class="small mute">Meal 1 · Meal 2 · Dinner</span></div></div>
@@ -176,13 +175,10 @@ function renderToday() {
 }
 function bodyCard(td) {
   const lb = latestBody(), dl = DB.daily[td] || {}, st = +(dl.steps || 0), aw = avgWeight(td);
-  const ls = DB.lastSync ? Math.round((Date.now() - DB.lastSync.at) / 60000) : null;
-  const ago = ls == null ? 'Not synced yet · set up the Shortcut in Settings' : ls < 60 ? 'Synced ' + ls + ' min ago' : ls < 1440 ? 'Synced ' + Math.round(ls / 60) + ' h ago' : 'Synced ' + Math.round(ls / 1440) + ' days ago';
-  const old = lb && lb.d < addDays(td, -3);
-  return `<div class="card"><div class="row"><h2 style="flex:1;margin:0">Body</h2><span class="tiny mute">${ago}</span></div>
-  <div class="grid2" style="margin-top:8px"><div><div class="tiny mute">7-day avg weight</div><div class="stat">${aw || (lb ? lb.w : '—')}</div><div class="tiny mute">${lb ? 'Last weigh-in ' + fmtDate(lb.d) + (lb.bf ? ' · ' + lb.bf + '% fat' : '') : 'No weigh-ins yet'}</div></div>
-  <div><div class="tiny mute">Steps today</div><div class="stat">${st ? st.toLocaleString() : '—'}</div><div class="bar" style="margin-top:6px"><i style="width:${Math.min(100, Math.round(st / 100))}%"></i></div><div class="tiny mute">Goal 10-12k</div></div></div>
-  ${old ? `<div class="small" style="margin-top:8px;color:var(--acc2)">Your last Hume weigh-in is old. Step on it tomorrow morning.</div>` : ''}</div>`;
+  return `<div class="card"><h2>Weigh-in</h2>
+  <div class="grid2"><label class="fld"><span>Today's weight (${S().units})</span><input inputmode="decimal" placeholder="type it" value="${dl.weight || ''}" onchange="setDaily('weight',this.value);render()"></label>
+  <div><div class="tiny mute">7-day average</div><div class="stat">${aw || '—'}</div><div class="tiny mute">${lb ? 'Last: ' + lb.w + ' on ' + fmtDate(lb.d) : 'Morning, after the bathroom, before food'}</div></div></div>
+  <div class="tiny mute">Missed a day? No problem. The average only needs 4-5 weigh-ins a week.${st ? ' · Steps today: ' + st.toLocaleString() : ''}</div></div>`;
 }
 function banner(t, d, act) { return `<div class="card" style="border-color:#7c5a12;background:#231a0b"><div class="row"><span class="pill y">To do</span><b>${t}</b></div><div class="small" style="margin:6px 0 10px">${d}</div><button class="btn sm" onclick="${act}">Open</button></div>`; }
 function actBtn(b) { if (b.gym) return `<button class="btn sm" onclick="go('gym')">Start workout</button>`; if (b.play) return `<button class="btn sm" onclick="play('${b.play}')">▶ Follow along</button>`; if (b.progress) return `<button class="btn sm" onclick="PROGTAB='week';go('progress')">Check in</button>`; if (b.team) return `<button class="btn sm" onclick="openFood()">Food rules</button>`; return ''; }
@@ -395,7 +391,7 @@ function bestSet(k, name) { let best = null; Object.values(DB.sessions).forEach(
 function autopilot(w) {
   const td = today(), c = DB.checkins[w] || {}, out = []; let kcal = 0;
   const now = parseFloat(avgWeight(td)), prev = parseFloat((DB.checkins[w - 1] || {}).avg || avgWeight(addDays(td, -7)));
-  if (isNaN(now) || isNaN(prev)) out.push(['Calories', 'Need about a week of weigh-ins to adjust. Step on the Hume each morning.']);
+  if (isNaN(now) || isNaN(prev)) out.push(['Calories', 'Need about a week of weigh-ins to adjust. Weigh yourself most mornings.']);
   else {
     const loss = +(prev - now).toFixed(2), prevLoss = (DB.checkins[w - 1] || {}).loss;
     if (loss > 1.5) { kcal = 100; out.push(['Calories', `You lost ${loss} lb this week (too fast, you could lose muscle). Eat 100 more a day: add a banana or 1/2 cup rice.`]); }
@@ -418,8 +414,8 @@ function progWeek() {
   const td = today(), w = Math.max(1, weekOf(td)), c = DB.checkins[w] || {};
   const aw = avgWeight(td), hs = bestSet('legsA', 'Hack squat (heels elevated)'), rdl = bestSet('legsB', 'Romanian deadlift');
   const prevW = DB.checkins[w - 1] || {}, lb = latestBody();
-  let html = `<div class="card"><h2>Week ${w} check-in</h2><div class="small mute">Every Sunday, 3 minutes. Weight, body fat and lifts fill in by themselves. Then tap Save and the app tells you what changes next week.</div>
-  <div class="grid2"><div class="fld"><span>7-day avg weight</span><b style="font-size:22px">${aw || '—'}</b> <span class="tiny mute">${prevW.avg ? '(last week ' + prevW.avg + ')' : ''}</span></div><div class="fld"><span>Body fat (Hume)</span><b style="font-size:22px">${lb && lb.bf ? lb.bf + '%' : '—'}</b></div></div>
+  let html = `<div class="card"><h2>Week ${w} check-in</h2><div class="small mute">Every Sunday, 3 minutes. Your weight average and best lifts fill in from what you logged. Then tap Save and the app tells you what changes next week.</div>
+  <div class="fld"><span>7-day avg weight</span><b style="font-size:22px">${aw || '—'}</b> <span class="tiny mute">${prevW.avg ? '(last week ' + prevW.avg + ')' : ''}</span></div>
   <div class="fld"><span>Best hack squat / RDL</span><b>${hs || '—'}</b> / <b>${rdl || '—'}</b></div>
   <div class="grid2"><label class="fld"><span>Knee-to-wall LEFT (cm)</span><input inputmode="decimal" value="${c.k2wl || ''}" onchange="ci('k2wl',this.value)"></label><label class="fld"><span>Knee-to-wall RIGHT (cm)</span><input inputmode="decimal" value="${c.k2wr || ''}" onchange="ci('k2wr',this.value)"></label>
   <label class="fld"><span>Morning stiffness (avg min)</span><input inputmode="numeric" value="${c.stiff || ''}" onchange="ci('stiff',this.value)"></label><label class="fld"><span>Energy (1-10)</span><input inputmode="numeric" value="${c.energy || ''}" onchange="ci('energy',this.value)"></label></div>
@@ -482,10 +478,10 @@ async function progPhotos() {
 
 // ---------- SETTINGS ----------
 function shortcutCard() {
-  return `<div class="card"><h2>Auto-fill from Hume + Apple Health</h2><div class="small">Your Hume Body Pod already writes weight and body fat into Apple Health (same as Nino Health). One Shortcut reads them plus your steps and opens this app with everything filled in.</div>
-  <ol class="cues"><li>Open the <b>Shortcuts</b> app → <b>+</b>. Tap the text box at the bottom and paste the prompt below (the AI builder makes it for you). Or build it by hand from the same steps.</li><li>Run it once. Tap <b>Allow</b> for Health.</li><li>In the shortcut, tap the name at the top → <b>Add to Home Screen</b>. Use <b>this</b> icon to open the app from now on. (Don't use Safari's "Add to Home Screen"; it keeps a separate copy of your data.)</li></ol>
+  return `<div class="card"><details><summary><b>Optional: auto-fill from Hume</b> <span class="tiny mute">(skip this; typing works fine)</span></summary><div class="small">Your Hume Body Pod already writes weight and body fat into Apple Health (same as Nino Health). One Shortcut reads them plus your steps and opens this app with everything filled in.</div>
+  <ol class="cues"><li>Open the <b>Shortcuts</b> app → <b>+</b>. Tap the text box at the bottom and paste the prompt below (the AI builder makes it for you). Or build it by hand from the same steps.</li><li>Run it once. Tap <b>Allow</b> for Health.</li><li>In the shortcut, tap the name at the top → <b>Add to Home Screen</b>. Note: this icon and Safari's home-screen icon keep separate data, so only set this up at the very start.</li></ol>
   <textarea id="scp" rows="9" style="width:100%;font-size:12px" readonly>${SHORTCUT_PROMPT}</textarea><button class="btn sm" onclick="navigator.clipboard.writeText($('#scp').value).then(()=>toast('Copied'))">Copy prompt</button>
-  <div class="tiny mute" style="margin-top:6px">${DB.lastSync ? 'Last sync: ' + new Date(DB.lastSync.at).toLocaleString() : 'Not synced yet.'} Test link: <a href="#sync=${encodeURIComponent('w=199.4 lb|wd=' + today() + '|bf=12.1%|steps=4,210')}" onclick="setTimeout(()=>{handleSync();closeModal();render()},50)">try a fake sync</a></div></div>`;
+  <div class="tiny mute" style="margin-top:6px">${DB.lastSync ? 'Last sync: ' + new Date(DB.lastSync.at).toLocaleString() : 'Not synced yet.'} </div></details></div>`;
 }
 function openSettings() {
   const s = S();
@@ -514,10 +510,10 @@ function downloadICS() {
   const dt = (d, t) => ymd(d).replace(/-/g, '') + 'T' + t.replace(':', '') + '00';
   const firstDow = dow => { const d = new Date(st); while (d.getDay() !== dow) d.setDate(d.getDate() + 1); return d; };
   const url = location.href.split('#')[0];
-  let n = 0; const ev = (title, d, t, mn, rrule, desc) => { const e = toMin(t) + mn; return `BEGIN:VEVENT\r\nUID:rp-${n++}-${Date.now()}@reneplan\r\nDTSTAMP:${dt(new Date(), '00:00')}\r\nDTSTART:${dt(d, t)}\r\nDTEND:${dt(d, toT(e))}\r\n${rrule ? 'RRULE:' + rrule + ';UNTIL=' + U + '\r\n' : ''}SUMMARY:${title}\r\nDESCRIPTION:${(desc || '').replace(/\n/g, '\\n')}\\nOpen the app from your Rene Plan shortcut.\r\nBEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:${title}\r\nTRIGGER:-PT0M\r\nEND:VALARM\r\nEND:VEVENT\r\n`; };
+  let n = 0; const ev = (title, d, t, mn, rrule, desc) => { const e = toMin(t) + mn; return `BEGIN:VEVENT\r\nUID:rp-${n++}-${Date.now()}@reneplan\r\nDTSTAMP:${dt(new Date(), '00:00')}\r\nDTSTART:${dt(d, t)}\r\nDTEND:${dt(d, toT(e))}\r\n${rrule ? 'RRULE:' + rrule + ';UNTIL=' + U + '\r\n' : ''}SUMMARY:${title}\r\nDESCRIPTION:${(desc || '').replace(/\n/g, '\\n')}\\nOpen Rene Plan.\r\nBEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:${title}\r\nTRIGGER:-PT0M\r\nEND:VALARM\r\nEND:VEVENT\r\n`; };
   const wake = toMin(s.wake), bed = toMin(s.bed);
   let c = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Rene Plan//EN\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:Rene Plan\r\n';
-  c += ev('⚖️ Weigh in on the Hume, then open Rene Plan', st, s.wake, 5, 'FREQ=DAILY', 'Step on the Hume, then tap the Rene Plan shortcut so it fills in.');
+  c += ev('⚖️ Weigh in + type it in Rene Plan', st, s.wake, 5, 'FREQ=DAILY', 'After the bathroom, before food.');
   c += ev(`☀️ Sun walk + morning routine (${rMin('morning')} min)`, st, toT(wake + 15), 40, 'FREQ=DAILY', 'Walk 20-30 min outside, then follow along with the morning routine.');
   const names = { 1: 'Push', 2: 'Legs A + ankles + jumps', 3: 'Pull', 4: 'Legs B + ankles + jumps', 5: 'Upper + abs + bike' };
   [1, 2, 3, 4, 5].forEach(d => c += ev('🏋️ Gym: ' + names[d] + ' (lift + stretch + sauna)', firstDow(d), s.lift, 90, 'FREQ=WEEKLY', 'Open the Gym tab. ' + ([2, 4].includes(d) ? 'Odd weeks: film 1 set (the Gym tab tells you).' : '')));
@@ -543,13 +539,12 @@ function renderOnboarding() {
      <div class="card"><b>How it works</b><ul class="cues"><li><b>Today</b>: what to do now. Tap ▶ and follow the video.</li><li><b>Gym</b>: today's workout, ~1:30 with stretch + sauna. Log sets.</li><li><b>Learn</b>: 1-minute swipe lessons + the full research.</li><li><b>Progress</b>: Sunday check-in, tests, films, photos, charts.</li></ul></div>
      <div class="card"><b>Rules you don't schedule</b><div class="small mute">Move every hour, 10-12k steps, pain ≤3/10, pick-a-team meals. They live on the Today screen.</div></div>`,
     `<h1>When does your day happen?</h1><p class="mute">The app builds your schedule around these. Change them any time in Settings.</p>${schedFields(s)}`,
-    `<h1>Auto-fill your stats</h1><p class="mute">So you never type your weight or steps.</p>${shortcutCard()}`,
-    `<h1>Reminders</h1><p class="mute">One tap adds your whole 12 weeks to your calendar with alerts.</p><button class="btn" onclick="saveSettings(false);downloadICS()">📅 Add to my calendar</button>`,
-    `<h1>First thing tomorrow</h1><div class="card"><ol class="cues"><li>Weigh in on the Hume, open the app from the Shortcut</li><li>Sun walk</li><li><b>Week-0 tests</b> (Progress → Tests): 15 min</li><li>Morning routine: tap ▶ and follow along</li><li>Gym: follow the Gym tab top to bottom</li></ol></div><p class="mute">That's it. Open the app, look at "Up next", tap ▶, tap ✓.</p>`
+    `<h1>Reminders</h1><p class="mute">One tap adds your whole 12 weeks to your calendar with alerts.</p><button class="btn" onclick="saveSettings(false);downloadICS()">📅 Add to my calendar</button><div class="card" style="margin-top:12px"><b>Make it an app</b><div class="small">In Safari tap <b>Share</b> → <b>Add to Home Screen</b>. Open it from that icon from now on.</div></div>`,
+    `<h1>First thing tomorrow</h1><div class="card"><ol class="cues"><li>Weigh yourself and type it on the Today screen</li><li>Sun walk</li><li><b>Week-0 tests</b> (Progress → Tests): 15 min</li><li>Morning routine: tap ▶ and follow along</li><li>Gym: follow the Gym tab top to bottom</li></ol></div><p class="mute">That's it. Open the app, look at "Up next", tap ▶, tap ✓.</p>`
   ];
   app.innerHTML = `<div class="onb">${steps[OSTEP]}<div style="flex:1"></div><div class="row" style="margin-top:20px">${OSTEP ? `<button class="btn sec" onclick="OSTEP--;renderOnboarding()">Back</button>` : ''}<button class="btn" onclick="onbNext()">${OSTEP === steps.length - 1 ? "Let's go" : 'Next'}</button></div><div class="dots" style="margin-top:14px">${steps.map((_, i) => `<i class="${i === OSTEP ? 'on' : ''}"></i>`).join('')}</div></div>`;
 }
-function onbNext() { if (OSTEP === 1) saveSettings(false); if (OSTEP >= 4) { DB.onboarded = true; save(); OSTEP = 0; render(); return; } OSTEP++; renderOnboarding(); }
+function onbNext() { if (OSTEP === 1) saveSettings(false); if (OSTEP >= 3) { DB.onboarded = true; save(); OSTEP = 0; render(); return; } OSTEP++; renderOnboarding(); }
 
 // ---------- boot ----------
 // migrate old settings (v1 had Fri cardio + 5 PM Pilates)

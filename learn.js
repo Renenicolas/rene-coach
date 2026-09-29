@@ -51,11 +51,11 @@ window.LESSONS = [
     { h: 'Why', b: 'You cannot see your pelvis tuck or knees cave while lifting. A 10-second clip shows it. Week 1 vs week 11 side by side is the best proof you improved.' },
     { h: 'Skipped?', b: 'Film at your next leg day. Missed a whole film week? Skip it. No catching up.' }
   ]},
-  { id: 'autofill', group: 'Progress', title: 'How your stats fill in by themselves', min: 1, cards: [
-    { h: 'The chain', b: 'Hume Body Pod → Apple Health → your "Rene Plan" Shortcut → this app. Same idea as Nino Health.' },
-    { h: 'What comes in', b: 'Latest weight + its date, body fat %, steps today and yesterday.' },
-    { h: 'Your part', b: 'Step on the Hume in the morning. Open the app with the Shortcut icon. That\'s it.' },
-    { h: 'Sunday', b: 'The check-in reads your 7-day average weight and lifts, then tells you exactly what changes: calories, pain backoffs, unlocks, next week\'s deload or test.' }
+  { id: 'autofill', group: 'Progress', title: 'Weigh-ins: why + how', min: 1, cards: [
+    { h: 'Why', b: 'Your weight jumps 1-3 lb a day from water and salt. The 7-day average shows the real trend. The Sunday check-in uses it to adjust your calories.' },
+    { h: 'How', b: 'Any scale. Morning, after the bathroom, before food. Type it in the Weigh-in box on Today. 5 seconds.' },
+    { h: 'Missed some?', b: '4-5 weigh-ins a week is enough.' },
+    { h: 'Hume?', b: 'Optional. It adds body fat %, which home scales guess badly. Not needed for this plan.' }
   ]},
 
   { id: 'rewire', group: 'Movement', title: 'How you rewire your body', min: 2, cards: [

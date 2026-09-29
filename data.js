@@ -250,7 +250,7 @@ window.CARDIO = {
 // ---------- ALWAYS-ON RULES (not scheduled, just remember) ----------
 window.RULES = [
   { t: 'Move every 45-60 min', d: 'Been sitting about an hour? Do the 2.5-min movement break.' },
-  { t: '10-12k steps', d: 'Walk after meals, take calls walking, take the stairs. Your phone fills this in automatically if you open the app from the Shortcut.' },
+  { t: '10-12k steps', d: 'Walk after meals, take calls walking, take the stairs. Your iPhone Health app counts them; typing them in is optional.' },
   { t: 'Pain rule: 3 out of 10 max', d: 'OK if it is gone by the next morning. Worse next morning? Cut that exercise 20-30% for 2-3 days. Sharp pain = stop or swap.' },
   { t: 'Missed a workout?', d: 'Do the next one in order. The Gym tab shows you which. Never two leg days in a row.' },
   { t: 'Pick a team at every meal', d: 'Protein + Sweet (rice, fruit, honey, oats) OR protein + Rich (steak, salmon, oil, avocado). Not both together.' },
