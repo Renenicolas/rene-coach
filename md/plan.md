@@ -1,6 +1,9 @@
 # Rene's 12-Week Plan: Lean, Athletic, Pain-Free
 Starts Tuesday, Sep 29, 2026 (week 1 = Sep 29 - Oct 4; week 12 ends Dec 20). Built from your Superpower plan plus everything we learned from GOATA, Tripp, Mitchell Saron and Kaya, checked against the research. Not medical advice.
 
+> **Updated Sep 28 (the app is the current version):** morning routine is now Tripp's 5-min routine + ankle rocks (~8 min, follow-along video). Foam rolling moved to the gym. Evening = 10-min wind-down (face, legs up, 2-2-4). Gym days are ~1:30: warm-up, ~45-55 min lift, stretch + foam roll, 15-min sauna; Friday's bike is inside the gym block. Suitcase carry, banded side work, L-sit and McGill drills removed (front abs only). Face pulls once a week. Saturday Pilates in the morning. Sunday sauna + cold plunge. Check-ins adjust calories automatically; no coach.
+
+
 ## The goal, in order
 1. **Look built:** lose fat while keeping or adding muscle, and even out your body.
 2. **Be athletic:** jump higher, have strong springy legs, run and cut without pain.

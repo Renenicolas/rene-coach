@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#0f172a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Rene Coach">
+<meta name="apple-mobile-web-app-title" content="Rene Plan">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="img/icon-192.png">
-<title>Rene Coach</title>
+<title>Rene Plan</title>
 <style>
 :root{--bg:#0b1020;--card:#141b2e;--card2:#1b2440;--line:#26304d;--text:#e8ecf5;--mute:#8e99b8;--acc:#22c55e;--acc2:#38bdf8;--warn:#f59e0b;--bad:#ef4444;--sweet:#f59e0b;--rich:#a78bfa}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -27,6 +27,7 @@ main{padding:14px 14px 20px;max-width:640px;margin:0 auto}
 .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--card2);border:1px solid var(--line);margin-right:4px}
 .pill.g{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:#86efac}
 .pill.b{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.4);color:#7dd3fc}
+.pill.r{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5}
 .pill.y{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#fcd34d}
 .pill.p{background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.4);color:#c4b5fd}
 .pill.r{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5}
@@ -117,6 +118,19 @@ input,select,textarea{font:inherit}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:8px 12px;font-size:14px}
 .chips button.on{background:var(--acc2);color:#04263a;border-color:var(--acc2);font-weight:700}
+
+.days::-webkit-scrollbar{display:none}.days{scrollbar-width:none}
+.vid{width:100%;border-radius:14px;background:#000;max-height:42vh;object-fit:contain;display:block;margin-top:8px}
+.player{display:flex;flex-direction:column;gap:10px}
+.player .pn{font-size:24px;font-weight:800;line-height:1.15}
+.player .clock{font-size:64px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.player .side{text-align:center;font-weight:700;color:var(--acc2)}
+.pacer{width:150px;height:150px;border-radius:50%;margin:6px auto;background:radial-gradient(circle,#22c55e55,#22c55e11);border:3px solid #22c55e;transition:transform 1.9s ease-in-out;display:flex;align-items:center;justify-content:center;font-weight:800}
+.why{background:var(--card2);border-radius:10px;padding:8px 10px;margin:6px 0;font-size:13px}
+.srcp{font-size:11px;color:var(--acc2);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.sec-h{display:flex;align-items:center;gap:8px;margin:16px 4px 8px}.sec-h h3{margin:0;flex:1;color:var(--mute);font-size:13px;text-transform:uppercase}
+.item{padding:9px 0;border-bottom:1px solid var(--line)}
+.stat{font-size:22px;font-weight:800}
 </style>
 </head>
 <body>
@@ -124,6 +138,7 @@ input,select,textarea{font:inherit}
 <div class="timer" id="timer"><div><div class="tiny mute">Rest</div><div class="tt" id="tt">0:00</div></div><button class="btn sm sec" onclick="Timer.add(30)">+30s</button><button class="btn sm" onclick="Timer.stop()">Done</button></div>
 <div class="modal" id="modal"></div>
 <div class="toast" id="toast"></div>
+<script src="vid.js"></script>
 <script src="data.js"></script>
 <script src="learn.js"></script>
 <script src="app.js"></script>
